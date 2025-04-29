@@ -1,36 +1,64 @@
 from django.core.management.base import BaseCommand
 from octofit_tracker.models import User, Team, Activity, Leaderboard, Workout
 from datetime import timedelta
+from bson import ObjectId
 
 class Command(BaseCommand):
     help = 'Populate the database with test data'
 
     def handle(self, *args, **kwargs):
         # Clear existing data
-        User.objects.all().delete()
         Team.objects.all().delete()
         Activity.objects.all().delete()
         Leaderboard.objects.all().delete()
         Workout.objects.all().delete()
 
-        # Add test users
-        user1 = User.objects.create(username='john_doe', email='john@example.com')
-        user2 = User.objects.create(username='jane_doe', email='jane@example.com')
+        # Create users
+        users = [
+            User(_id=ObjectId(), username='thundergod', email='thundergod@mhigh.edu', password='thundergodpassword'),
+            User(_id=ObjectId(), username='metalgeek', email='metalgeek@mhigh.edu', password='metalgeekpassword'),
+            User(_id=ObjectId(), username='zerocool', email='zerocool@mhigh.edu', password='zerocoolpassword'),
+            User(_id=ObjectId(), username='crashoverride', email='crashoverride@hmhigh.edu', password='crashoverridepassword'),
+            User(_id=ObjectId(), username='sleeptoken', email='sleeptoken@mhigh.edu', password='sleeptokenpassword'),
+        ]
+        User.objects.bulk_create(users)
 
-        # Add test teams
-        team1 = Team.objects.create(name='Team Alpha', description='Alpha team description')
-        team2 = Team.objects.create(name='Team Beta', description='Beta team description')
+        # Create teams
+        team1 = Team(_id=ObjectId(), name='Blue Team')
+        team2 = Team(_id=ObjectId(), name='Gold Team')
+        team1.save()
+        team2.save()
+        for user in users:
+            team1.members.add(user)
 
-        # Add test activities
-        Activity.objects.create(user=user1, activity_type='Running', duration=timedelta(minutes=30), distance=5.0)
-        Activity.objects.create(user=user2, activity_type='Cycling', duration=timedelta(minutes=60), distance=20.0)
+        # Create activities
+        activities = [
+            Activity(_id=ObjectId(), user=users[0], activity_type='Cycling', duration=timedelta(hours=1)),
+            Activity(_id=ObjectId(), user=users[1], activity_type='Crossfit', duration=timedelta(hours=2)),
+            Activity(_id=ObjectId(), user=users[2], activity_type='Running', duration=timedelta(hours=1, minutes=30)),
+            Activity(_id=ObjectId(), user=users[3], activity_type='Strength', duration=timedelta(minutes=30)),
+            Activity(_id=ObjectId(), user=users[4], activity_type='Swimming', duration=timedelta(hours=1, minutes=15)),
+        ]
+        Activity.objects.bulk_create(activities)
 
-        # Add test leaderboard entries
-        Leaderboard.objects.create(user=user1, points=100)
-        Leaderboard.objects.create(user=user2, points=150)
+        # Create leaderboard entries
+        leaderboard_entries = [
+            Leaderboard(_id=ObjectId(), user=users[0], points=100),
+            Leaderboard(_id=ObjectId(), user=users[1], points=90),
+            Leaderboard(_id=ObjectId(), user=users[2], points=95),
+            Leaderboard(_id=ObjectId(), user=users[3], points=85),
+            Leaderboard(_id=ObjectId(), user=users[4], points=80),
+        ]
+        Leaderboard.objects.bulk_create(leaderboard_entries)
 
-        # Add test workouts
-        Workout.objects.create(name='Morning Run', description='A quick morning run', duration=timedelta(minutes=30))
-        Workout.objects.create(name='Evening Yoga', description='Relaxing yoga session', duration=timedelta(minutes=45))
+        # Create workouts
+        workouts = [
+            Workout(_id=ObjectId(), name='Cycling Training', description='Training for a road cycling event', duration=timedelta(hours=1)),
+            Workout(_id=ObjectId(), name='Crossfit', description='Training for a crossfit competition', duration=timedelta(hours=2)),
+            Workout(_id=ObjectId(), name='Running Training', description='Training for a marathon', duration=timedelta(hours=1, minutes=30)),
+            Workout(_id=ObjectId(), name='Strength Training', description='Training for strength', duration=timedelta(minutes=30)),
+            Workout(_id=ObjectId(), name='Swimming Training', description='Training for a swimming competition', duration=timedelta(hours=1, minutes=15)),
+        ]
+        Workout.objects.bulk_create(workouts)
 
         self.stdout.write(self.style.SUCCESS('Database populated with test data'))
